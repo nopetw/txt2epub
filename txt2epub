@@ -26,8 +26,8 @@ hrmark="[。|-|~|…|\.|．]"
 function tcy()
 {
     value=$@
-    value=echo $@ | sed "s/</＜/g;s/>/＞/g;s/&/＆/g;s/!/！/g;s/?/？/g;s/“/「/g/;
-s/”/」/g;"
+    value=echo $@ | sed "s/</＜/g;s/>/＞/g;s/&/＆/g;s/!/！/g;s/?/？/g;s/「/「/g/;
+s/」/」/g;"
 	value=echo $value | sed "s/\([0-9|a-z]\{1,\}\)/span class=\"tcy\">\1<\/span>/g;s/\([A-Z]\)/<span class=\"tcy\">\1<\/span>/g"
     echo $value
 }
