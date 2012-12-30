@@ -1,6 +1,5 @@
 #! /bin/sh
 alias echo=/bin/echo
-#目標向tax化前進
 #v3
 #修改整理源碼
 #v2
@@ -27,8 +26,8 @@ hrmark="[。|-|~|…|\.|．]"
 function tcy()
 {
     value=$@
-    value=echo $@ | sed "s/</＜/g;s/>/＞/g;s/&/＆/g;s/!/！/g;s/?/？/g;s/“/「/g/;
-s/”/」/g;"
+    value=echo $@ | sed "s/</＜/g;s/>/＞/g;s/&/＆/g;s/!/！/g;s/?/？/g;s/「/「/g/;
+s/」/」/g;"
 	value=echo $value | sed "s/\([0-9|a-z]\{1,\}\)/span class=\"tcy\">\1<\/span>/g;s/\([A-Z]\)/<span class=\"tcy\">\1<\/span>/g"
     echo $value
 }
