@@ -1,0 +1,18 @@
+txt2epub
+lubduphaur@gmail.com
+--
+理想操作系統為mac
+自動轉換txt檔案為直書epub，外加檢查是否符合epub格式
+預設語系zh-TW
+--
+置放epubcheck.jar於~/bin
+	http://code.google.com/p/epubcheck/
+安裝ImageMagick
+	http://www.imagemagick.org/script/index.php
+gsed
+	參照MacPorts
+	http://www.macports.org
+--
+version 3
+一 12 31 00:16:58 CST 2012
+fix 最後一頁不存在的報錯問題

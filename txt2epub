@@ -1,0 +1,303 @@
+#! /bin/sh
+alias echo=/bin/echo
+#目標向tax化前進
+#v3
+#修改整理源碼
+#v2
+#iBook 3 epub3 直書 小數字合併  四 12 13 22:11:14 CST 2012
+#續 1. 修正css格式 2. epub內部檔案格式 六 12 15 03:19:47 CST 2012
+#v1
+
+##option##
+#語系
+lang="zh-TW"
+
+#章節規則
+#rulebak="^第[零一二三四五六七八九十百千0123456789]*[章|卷|回|節]"
+#rulebak="^第[零一二三四五六七八九十百千0123456789]*[章|回|節]"
+rulebak="^第[零一兩二三四五六七八九十百千0123456789]*[章]"
+read -p "$rulebak " rule
+if [ "$rule" == "" ];then
+	rule=$rulebak
+fi
+#分割線規則
+hrmark="[。|-|~|…|\.|．]"
+
+#小程式
+function tcy()
+{
+    value=$@
+    value=echo $@ | sed "s/</＜/g;s/>/＞/g;s/&/＆/g;s/!/！/g;s/?/？/g;s/“/「/g/;
+s/”/」/g;"
+	value=echo $value | sed "s/\([0-9|a-z]\{1,\}\)/span class=\"tcy\">\1<\/span>/g;s/\([A-Z]\)/<span class=\"tcy\">\1<\/span>/g"
+    echo $value
+}
+
+#標題及作者確定
+read -p "標題:" title
+read -p "作者:" author
+outputName=`printf "${title}_${author}"`
+echo "${outputName}"
+#檔案確定
+if [ "$1" == "" ]
+	then
+	echo $0 inputFileName.txt
+	exit
+else
+	inputFile=$@
+fi
+#檢查
+sed -n "/${rule}/p" $inputFile|less
+#預備資料夾建立
+mkdir -p "${outputName}"/{META-INF,EPUB}
+mkdir -p "${outputName}"/EPUB/{css,xhtml,img}
+#封面
+function nl()
+{
+    echo $@ | sed "s/\(\W\)/\1\\\n/g;s/\\\n$//"
+}
+
+read -p "輸入圖片，留白自動生成:" coverpath
+if [ "$coverpath" != "" ]
+	then
+		convert "$coverpath" "${outputName}/EPUB/img/cover.png"
+	else
+		cd "${outputName}/EPUB/img"
+		convert -size 320x960 -pointsize 100 -gravity west -font "/System/Library/Fonts/STHeiti Light.ttc" label:$(nl $title) 3.png
+		convert -size 240x960 -pointsize 50 -gravity center -font "/System/Library/Fonts/STHeiti Light.ttc" label:$(nl $author) 2.png
+		convert -size 960x120 -pointsize 28 -gravity east -font "/System/Library/Fonts/STHeiti Light.ttc" label:nopetw 0.png
+		convert -rotate 90 0.png 1.png
+		convert +append 1.png 2.png 3.png cover.png
+		rm 0.png 1.png 2.png 3.png
+		cd ../../../
+fi
+cat << EOF > "${outputName}/EPUB/xhtml/cover.xhtml"
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="zh-TW" lang="zh-TW">
+    <head>
+        <title>Cover</title>
+        <style type="text/css">
+            img{
+                max-width:100%;
+            }
+        </style>
+    </head>
+    <body>
+        <figure id="cover-image">
+            <img src="../img/cover.png" alt="$title" />
+        </figure>
+    </body>
+</html>
+EOF
+#預備資料建立
+cat << EOF > "${outputName}/META-INF/container.xml"
+<?xml version="1.0"?>
+<container version="1.0"
+xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
+	<rootfiles>
+		<rootfile full-path="EPUB/content.opf"
+		media-type="application/oebps-package+xml" />
+	</rootfiles>
+</container>
+EOF
+
+printf "application/epub+zip" > "${outputName}/mimetype"
+
+#css樣式
+cat << EOF > "${outputName}/EPUB/css/epub-spec.css"
+@charset "utf-8";
+html {
+	font-family: "STHeitiTC", serif, sans-serif;
+	writing-mode: vertical-rl;
+	-webkit-writing-mode: vertical-rl;
+	-epub-writing-mode: vertical-rl;
+	line-height: 1.75;
+	text-align: justify;
+}
+/*頁面邊界*/
+body {
+	margin-left: 5%;
+	margin-right: 5%;
+	margin-top: 5%;
+	margin-bottom: 5%;
+	text-align: justify;
+}
+/*字上or右上小點*/
+strong.sesame_dot {
+	font-weight: normal;
+	text-emphasis-style: sesame;
+	-webkit-text-emphasis-style: sesame;
+	-epub-text-emphasis-style: sesame;
+}
+/*word combine*/
+span.tcy {
+	-text-combine: horizontal;
+	-webkit-text-combine: horizontal;
+	-webkit-text-orientation: mixed;
+	-epub-text-combine: horizontal;
+}
+p {
+	text-indent: 1em;
+	margin: 0;
+}
+h1 { text-align: center; }
+h2 { text-align: center; }
+h3 { text-align: center; }
+h4 { text-align: center; }
+h5 { text-align: center; }
+h6 { text-align: center; }
+b.fWord {  text-align: left;
+text-indent: 0em;font-size: 125%;
+vertical-align: bottom;
+}
+p.fWord { text-indent: 0em;margin: 0;}
+.CI {
+	text-align:center;
+	margin-top:0px;
+	margin-bottom:0px;
+	padding:0px;
+}
+.center   {text-align: center;}
+.smcap    {font-variant: small-caps;}
+.u        {text-decoration: underline;}
+.bold     {font-weight: bold;}
+EOF
+
+#
+maxNum=`sed -n "$=" $inputFile`
+keyNum=`sed -n "/${rule}/=" $inputFile`
+echo maxNum=${maxNum}
+tmpNum=1
+outPutNum=0
+for i in $keyNum `expr $maxNum + 1`
+	do
+	j=`expr $i - 1`
+subTitle=`sed -n "${tmpNum}p" ${inputFile}`
+#
+cat << EOF > "${outputName}/EPUB/xhtml/${outPutNum}.xhtml"
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="$lang" lang="$lang">
+<head>
+<title>${title} ${outPutNum}</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../css/epub-spec.css" />
+</head>
+<body>
+<div>
+<h3>`printf ${subTitle}|sed "s/&/＆/g;s/</＜/g;s/>/    ＞/g;s/\([\w\.]\{1,\}\.\)/<span class=\"tcy\">\1<\/span>/g"`</h3>
+EOF
+echo"$[ $j - $tmpNum ] $tmpNum to $j\t${outPutNum}"
+sed -n "`expr ${tmpNum} + 1`,${j}p" $inputFile | sed "s/&/＆/g;s/</＜/g;s/>/＞/g;s/\([\w\.]\{1,\}\.\)/<span class=\"tcy\">\1<\/span>/g;s/^/<p>/;s/$/<\/p>/" >> "${outputName}/EPUB/xhtml/${outPutNum}.xhtml" 2>/dev/null
+cat << EOF >> "${outputName}/EPUB/xhtml/${outPutNum}.xhtml"
+</div>
+</body>
+</html>
+EOF
+	tmpNum=$i
+	if [ "$tmpNum" == "`expr $maxNum + 1`" ]
+		then
+		break
+	fi
+	
+	outPutNum=`expr $outPutNum + 1`
+done
+fullnum=`sed -n "$=" "${outputName}/EPUB/xhtml/${outPutNum}.xhtml"`
+sed -i "12,${fullnum}s/\(\w\)/span class=\"tcy\">\1<\/span>\1<\/span>/g" "${outputName}/EPUB/xhtml/${outPutNum}.xhtml"
+sed -i "12,${fullnum}s/^/<p>/;12,${fullnum}s/$/<\/p>/" "${outputName}/EPUB/xhtml/${outPutNum}.xhtml" 2>/dev/null
+sed -i "12,${fullnum}s/^<p>${hrmark}*<\/p>/<hr \/>/" "${outputName}/EPUB/xhtml/${outPutNum}.xhtml" 2>/dev/null
+
+#
+cd "${outputName}/EPUB"
+cd xhtml
+
+sed -i "9a<h2>${title}</h2>" 0.xhtml
+sed -i "10a<h4>${author}</h4>" 0.xhtml
+sed -i "11a<h5>`date +%Y年%m月%d日%H時%M分`</h5>" 0.xhtml
+sed -i "12a<hr />" 0.xhtml
+sed -i "9G"0.xhtml
+#nav.xhtml建立
+cat << EOF > nav.xhtml
+<?xml version="1.0" encoding="utf-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="$lang" lang="$lang">
+<head>
+	<title>目錄</title>
+	<link href="../css/epub-spec.css" type="text/css" rel="stylesheet" />
+</head>
+<body>
+<section class="frontmatter TableOfContent">
+	<nav epub:type="toc" id="toc">
+		<ol>
+EOF
+for navtmp in `ls | grep xhtml | grep -v nav.xhtml |grep -v cover.xhtml| sort -n`
+	do
+	printf "\t\t\t<li><a href=\"${navtmp}\">" >> nav.xhtml
+	printf "`sed -n "11p" ${navtmp} | sed "s/<\/*h[1-6]>//g"`" >> nav.xhtml
+	printf "</a></li>\n" >> nav.xhtml
+done
+cat << EOF >> nav.xhtml
+		</ol>
+	</nav>
+</section>
+</body>
+</html>
+EOF
+cd ..
+
+#content.opf建立
+cat << EOF > content.opf
+<?xml version="1.0"?>
+<package version="3.0"
+    xmlns="http://www.idpf.org/2007/opf" 
+    unique-identifier="BookId" 
+    xmlns:dc="http://purl.org/dc/elements/1.1/" 
+    xmlns:opf="http://www.idpf.org/2007/opf" 
+    xmlns:dcterms="http://purl.org/dc/terms/">
+<metadata>
+<dc:creator id="nopetw-aut">${author}</dc:creator>
+<dc:title>${title}</dc:title>
+<dc:language>${lang}</dc:language>
+<dc:date>`date +%Y-%m-%d`</dc:date>
+<meta property="dcterms:modified">`date +%Y-%m-%dT%H:%M:%SZ`</meta>
+<dc:publisher>nopetw</dc:publisher>
+<dc:identifier id="BookId">nopetw_`date +%Y-%m-%dT%H:%M:%SZ`</dc:identifier>
+</metadata>
+<manifest>
+EOF
+find . | sed -n "s/\.\///;/\//p" | sort -t "/" -n -k 2 >fileList
+cat fileList | grep .css | xargs -I{} printf  "\t<item id=\"style\" href=\"{}\" media-type=\"text/css\" />\n" >> content.opf
+sed -i "/css/d" fileList
+cat fileList | grep nav.xhtml | xargs -I{} printf  "\t<item id=\"nav\" href=\"{}\" properties=\"nav\" media-type=\"application/xhtml+xml\" />\n" >> content.opf
+sed -i "/nav.xhtml/d" fileList
+cat fileList | grep cover.xhtml | xargs -I{} printf  "\t<item id=\"cover\" href=\"{}\"  media-type=\"application/xhtml+xml\" />\n" >> content.opf
+sed -i "/cover.xhtml/d" fileList
+cat fileList | grep cover.png | xargs -I{} printf "\t<item id=\"cover-image\" properties=\"cover-image\" href=\"{}\"  media-type=\"image/png\" />\n" >> content.opf
+sed -i "/cover.png/d" fileList
+cat fileList | grep .xhtml | xargs -I{} echo {} | sed "s/\(xhtml\/\)\([^\.]*\)\(\.xhtml\)/\t<item id=\"IDX\2\" href=\"\1\2\3\" media-type=\"application\/xhtml+xml\" \/>/" >> content.opf
+sed -i "/xhtml/d" fileList
+rm fileList
+
+#spine page-progression-direction="rtl" toc="ncx"
+cat << EOF >> content.opf
+</manifest>
+<spine page-progression-direction="rtl">
+<itemref idref="cover" linear="no" />
+EOF
+cat content.opf |grep id=\"ID|sed "s/[^\"]*\"//;s/\".*//"|xargs -I{} printf "\t<itemref idref=\"{}\" />\n" >> content.opf
+cat << EOF >> content.opf
+</spine>
+<guide>
+	<reference href="xhtml/cover.xhtml" type="cover" title="Cover"/>
+	<reference href="xhtml/nav.xhtml" type="toc" title="Table of Contents"/>
+</guide>
+</package>
+EOF
+#檔案操作
+cd ..
+zip -Xqr  "${outputName}.epub" mimetype EPUB/ META-INF/
+mv "${outputName}.epub" ../
+cd ../
+mv "${inputFile}" "${outputName}.txt" 2>/dev/null
+rm -r "${outputName}"
+java -jar ~/bin/epubcheck/epubcheck.jar "${outputName}.epub"
+open "${outputName}.epub"
