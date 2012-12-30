@@ -1,17 +1,13 @@
 #! /bin/sh
 alias echo=/bin/echo
-#v3
-#修改整理源碼
-#v2
-#iBook 3 epub3 直書 小數字合併  四 12 13 22:11:14 CST 2012
-#續 1. 修正css格式 2. epub內部檔案格式 六 12 15 03:19:47 CST 2012
-#v1
-
-##option##
+#-------------------------------------------------
 #語系
+#-------------------------------------------------
 lang="zh-TW"
 
+#-------------------------------------------------
 #章節規則
+#-------------------------------------------------
 #rulebak="^第[零一二三四五六七八九十百千0123456789]*[章|卷|回|節]"
 #rulebak="^第[零一二三四五六七八九十百千0123456789]*[章|回|節]"
 rulebak="^第[零一兩二三四五六七八九十百千0123456789]*[章]"
@@ -19,25 +15,37 @@ read -p "$rulebak " rule
 if [ "$rule" == "" ];then
 	rule=$rulebak
 fi
+#-------------------------------------------------
 #分割線規則
+#-------------------------------------------------
 hrmark="[。|-|~|…|\.|．]"
 
 #小程式
+#---  FUNCTION  ----------------------------------
+#          NAME:  tcy
+#   DESCRIPTION:  修正無法顯示的字元＆自動插入<span class="tcy"> </span>
+#    PARAMETERS:  
+#       RETURNS:  
+#-------------------------------------------------
 function tcy()
 {
     value=$@
-    value=echo $@ | sed "s/</＜/g;s/>/＞/g;s/&/＆/g;s/!/！/g;s/?/？/g;s/「/「/g/;
-s/」/」/g;"
+    value=echo $@ | sed "s/</＜/g;s/>/＞/g;s/&/＆/g;s/!/！/g;s/?/？/g;s/“/「/g/;
+s/”/」/g;"
 	value=echo $value | sed "s/\([0-9|a-z]\{1,\}\)/span class=\"tcy\">\1<\/span>/g;s/\([A-Z]\)/<span class=\"tcy\">\1<\/span>/g"
     echo $value
 }
 
+#-------------------------------------------------
 #標題及作者確定
+#-------------------------------------------------
 read -p "標題:" title
 read -p "作者:" author
 outputName=`printf "${title}_${author}"`
 echo "${outputName}"
+#-------------------------------------------------
 #檔案確定
+#-------------------------------------------------
 if [ "$1" == "" ]
 	then
 	echo $0 inputFileName.txt
@@ -45,12 +53,18 @@ if [ "$1" == "" ]
 else
 	inputFile=$@
 fi
+#-------------------------------------------------
 #檢查
+#-------------------------------------------------
 sed -n "/${rule}/p" $inputFile|less
+#-------------------------------------------------
 #預備資料夾建立
+#-------------------------------------------------
 mkdir -p "${outputName}"/{META-INF,EPUB}
 mkdir -p "${outputName}"/EPUB/{css,xhtml,img}
+#-------------------------------------------------
 #封面
+#-------------------------------------------------
 function nl()
 {
     echo $@ | sed "s/\(\W\)/\1\\\n/g;s/\\\n$//"
@@ -88,7 +102,9 @@ cat << EOF > "${outputName}/EPUB/xhtml/cover.xhtml"
     </body>
 </html>
 EOF
+#-------------------------------------------------
 #預備資料建立
+#-------------------------------------------------
 cat << EOF > "${outputName}/META-INF/container.xml"
 <?xml version="1.0"?>
 <container version="1.0"
@@ -102,7 +118,9 @@ EOF
 
 printf "application/epub+zip" > "${outputName}/mimetype"
 
+#-------------------------------------------------
 #css樣式
+#-------------------------------------------------
 cat << EOF > "${outputName}/EPUB/css/epub-spec.css"
 @charset "utf-8";
 html {
@@ -215,7 +233,9 @@ sed -i "10a<h4>${author}</h4>" 0.xhtml
 sed -i "11a<h5>`date +%Y年%m月%d日%H時%M分`</h5>" 0.xhtml
 sed -i "12a<hr />" 0.xhtml
 sed -i "9G"0.xhtml
+#-------------------------------------------------
 #nav.xhtml建立
+#-------------------------------------------------
 cat << EOF > nav.xhtml
 <?xml version="1.0" encoding="utf-8"?>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="$lang" lang="$lang">
@@ -243,7 +263,9 @@ cat << EOF >> nav.xhtml
 EOF
 cd ..
 
+#-------------------------------------------------
 #content.opf建立
+#-------------------------------------------------
 cat << EOF > content.opf
 <?xml version="1.0"?>
 <package version="3.0"
@@ -276,7 +298,6 @@ cat fileList | grep .xhtml | xargs -I{} echo {} | sed "s/\(xhtml\/\)\([^\.]*\)\(
 sed -i "/xhtml/d" fileList
 rm fileList
 
-#spine page-progression-direction="rtl" toc="ncx"
 cat << EOF >> content.opf
 </manifest>
 <spine page-progression-direction="rtl">
@@ -291,7 +312,9 @@ cat << EOF >> content.opf
 </guide>
 </package>
 EOF
+#-------------------------------------------------
 #檔案操作
+#-------------------------------------------------
 cd ..
 zip -Xqr  "${outputName}.epub" mimetype EPUB/ META-INF/
 mv "${outputName}.epub" ../
