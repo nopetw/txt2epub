@@ -30,8 +30,8 @@ hrmark="[。|-|~|…|\.|．]"
 function tcy()
 {
     value=$@
-    value=echo $@ | sed "s/</＜/g;s/>/＞/g;s/&/＆/g;s/!/！/g;s/?/？/g;s/“/「/g/;
-s/”/」/g;"
+    value=echo $@ | sed "s/</＜/g;s/>/＞/g;s/&/＆/g;s/!/！/g;s/?/？/g;s/「/「/g/;
+s/」/」/g;"
 	value=echo $value | sed "s/\([0-9|a-z]\{1,\}\)/span class=\"tcy\">\1<\/span>/g;s/\([A-Z]\)/<span class=\"tcy\">\1<\/span>/g"
     echo $value
 }
@@ -133,10 +133,10 @@ html {
 }
 /*頁面邊界*/
 body {
-	margin-left: 5%;
-	margin-right: 5%;
-	margin-top: 5%;
-	margin-bottom: 5%;
+	margin-left: 2%;
+	margin-right: 2%;
+	margin-top: 2%;
+	margin-bottom: 2%;
 	text-align: justify;
 }
 /*字上or右上小點*/
@@ -204,26 +204,21 @@ cat << EOF > "${outputName}/EPUB/xhtml/${outPutNum}.xhtml"
 <div>
 <h3>`printf ${subTitle}|sed "s/&/＆/g;s/</＜/g;s/>/    ＞/g;s/\([\w\.]\{1,\}\.\)/<span class=\"tcy\">\1<\/span>/g"`</h3>
 EOF
-echo"$[ $j - $tmpNum ] $tmpNum to $j\t${outPutNum}"
-sed -n "`expr ${tmpNum} + 1`,${j}p" $inputFile | sed "s/&/＆/g;s/</＜/g;s/>/＞/g;s/\([\w\.]\{1,\}\.\)/<span class=\"tcy\">\1<\/span>/g;s/^/<p>/;s/$/<\/p>/" >> "${outputName}/EPUB/xhtml/${outPutNum}.xhtml" 2>/dev/null
+printf "$[ $j - $tmpNum ] $tmpNum to $j\t${outPutNum}\n"
+sed -n "`expr ${tmpNum} + 1`,${j}p" $inputFile | sed "s/&/＆/g;s/</＜/g;s/>/＞/g;s/\([\w\.]\{1,\}\.\)/<span class=\"tcy\">\1<\/span>/g;s/^/<p>/;s/$/<\/p>/;s/^<p>${hrmark}*<\/p>/<hr \/>/" >> "${outputName}/EPUB/xhtml/${outPutNum}.xhtml" 2>/dev/null
 cat << EOF >> "${outputName}/EPUB/xhtml/${outPutNum}.xhtml"
 </div>
 </body>
 </html>
 EOF
 	tmpNum=$i
-	if [ "$tmpNum" == "`expr $maxNum + 1`" ]
-		then
-		break
-	fi
-	
 	outPutNum=`expr $outPutNum + 1`
 done
-fullnum=`sed -n "$=" "${outputName}/EPUB/xhtml/${outPutNum}.xhtml"`
-sed -i "12,${fullnum}s/\(\w\)/span class=\"tcy\">\1<\/span>\1<\/span>/g" "${outputName}/EPUB/xhtml/${outPutNum}.xhtml"
-sed -i "12,${fullnum}s/^/<p>/;12,${fullnum}s/$/<\/p>/" "${outputName}/EPUB/xhtml/${outPutNum}.xhtml" 2>/dev/null
-sed -i "12,${fullnum}s/^<p>${hrmark}*<\/p>/<hr \/>/" "${outputName}/EPUB/xhtml/${outPutNum}.xhtml" 2>/dev/null
-
+#fullnum=`sed -n "$=" "${outputName}/EPUB/xhtml/${outPutNum}.xhtml"`
+#sed -i "12,${fullnum}s/\(\w\)/span class=\"tcy\">\1<\/span>\1<\/span>/g" "${outputName}/EPUB/xhtml/${outPutNum}.xhtml"
+#sed -i "12,${fullnum}s/^/<p>/" "${outputName}/EPUB/xhtml/${outPutNum}.xhtml" 
+#sed -i "12,${fullnum}s/$/<\/p>/" "${outputName}/EPUB/xhtml/${outPutNum}.xhtml"
+#sed -i "12,${fullnum}s/^<p>${hrmark}*<\/p>/<hr \/>/" "${outputName}/EPUB/xhtml/${outPutNum}.xhtml"
 #
 cd "${outputName}/EPUB"
 cd xhtml
