@@ -73,7 +73,7 @@ inputname=`echo $inputFile|sed s/txt$/jpg/`
 if [ -f "$inputname" ];then
 	convert "$inputname" "${outputName}/EPUB/img/cover.png"
 else
-	read -p "輸入圖片，留白自動生成:" coverpath
+	read -p "輸入圖片位置，留白自動生成:" coverpath
 	if [ "$coverpath" != "" ]
 		then
 			convert "$coverpath" "${outputName}/EPUB/img/cover.png"
@@ -218,12 +218,6 @@ EOF
 	tmpNum=$i
 	outPutNum=`expr $outPutNum + 1`
 done
-#fullnum=`sed -n "$=" "${outputName}/EPUB/xhtml/${outPutNum}.xhtml"`
-#sed -i "12,${fullnum}s/\(\w\)/span class=\"tcy\">\1<\/span>\1<\/span>/g" "${outputName}/EPUB/xhtml/${outPutNum}.xhtml"
-#sed -i "12,${fullnum}s/^/<p>/" "${outputName}/EPUB/xhtml/${outPutNum}.xhtml" 
-#sed -i "12,${fullnum}s/$/<\/p>/" "${outputName}/EPUB/xhtml/${outPutNum}.xhtml"
-#sed -i "12,${fullnum}s/^<p>${hrmark}*<\/p>/<hr \/>/" "${outputName}/EPUB/xhtml/${outPutNum}.xhtml"
-#
 cd "${outputName}/EPUB"
 cd xhtml
 
