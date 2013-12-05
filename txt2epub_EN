@@ -69,24 +69,20 @@ function nl()
 {
     echo $@ | sed "s/\(\W\)/\1\\\n/g;s/\\\n$//"
 }
-inputname=`echo $inputFile|sed s/txt$/jpg/`
-if [ -f "$inputname" ];then
-	convert "$inputname" "${outputName}/EPUB/img/cover.png"
-else
-	read -p "輸入圖片，留白自動生成:" coverpath
-	if [ "$coverpath" != "" ]
-		then
-			convert "$coverpath" "${outputName}/EPUB/img/cover.png"
-		else
-			cd "${outputName}/EPUB/img"
-			convert -size 320x960 -pointsize 100 -gravity west -font "/System/Library/Fonts/STHeiti Light.ttc" label:$(nl $title) 3.png
-			convert -size 240x960 -pointsize 50 -gravity center -font "/System/Library/Fonts/STHeiti Light.ttc" label:$(nl $author) 2.png
-			convert -size 960x120 -pointsize 28 -gravity east -font "/System/Library/Fonts/STHeiti Light.ttc" label:nopetw 0.png
-			convert -rotate 90 0.png 1.png
-			convert +append 1.png 2.png 3.png cover.png
-			rm 0.png 1.png 2.png 3.png
-			cd ../../../
-	fi
+
+read -p "輸入圖片，留白自動生成:" coverpath
+if [ "$coverpath" != "" ]
+	then
+		convert "$coverpath" "${outputName}/EPUB/img/cover.png"
+	else
+		cd "${outputName}/EPUB/img"
+		convert -size 320x960 -pointsize 100 -gravity west -font "/System/Library/Fonts/STHeiti Light.ttc" label:$(nl $title) 3.png
+		convert -size 240x960 -pointsize 50 -gravity center -font "/System/Library/Fonts/STHeiti Light.ttc" label:$(nl $author) 2.png
+		convert -size 960x120 -pointsize 28 -gravity east -font "/System/Library/Fonts/STHeiti Light.ttc" label:nopetw 0.png
+		convert -rotate 90 0.png 1.png
+		convert +append 1.png 2.png 3.png cover.png
+		rm 0.png 1.png 2.png 3.png
+		cd ../../../
 fi
 cat << EOF > "${outputName}/EPUB/xhtml/cover.xhtml"
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
@@ -129,9 +125,9 @@ cat << EOF > "${outputName}/EPUB/css/epub-spec.css"
 @charset "utf-8";
 html {
 	font-family: "STHeitiTC", serif, sans-serif;
-	writing-mode: vertical-rl;
-	-webkit-writing-mode: vertical-rl;
-	-epub-writing-mode: vertical-rl;
+	/*writing-mode: vertical-rl;*/
+	/*-webkit-writing-mode: vertical-rl;*/
+	/*-epub-writing-mode: vertical-rl;*/
 	line-height: 1.75;
 	text-align: justify;
 }
@@ -206,7 +202,7 @@ cat << EOF > "${outputName}/EPUB/xhtml/${outPutNum}.xhtml"
 </head>
 <body>
 <div>
-<h3>`echo ${subTitle}|sed "s/&/＆/g;s/</＜/g;s/>/＞/g"`</h3>
+<h3>`printf ${subTitle}|sed "s/&/＆/g;s/</＜/g;s/>/    ＞/g;s/\([\w\.]\{1,\}\.\)/<span class=\"tcy\">\1<\/span>/g"`</h3>
 EOF
 printf "$[ $j - $tmpNum ] $tmpNum to $j\t${outPutNum}\n"
 sed -n "`expr ${tmpNum} + 1`,${j}p" $inputFile | sed "s/&/＆/g;s/</＜/g;s/>/＞/g;s/\([\w\.]\{1,\}\.\)/<span class=\"tcy\">\1<\/span>/g;s/^/<p>/;s/$/<\/p>/;s/^<p>${hrmark}*<\/p>/<hr \/>/" >> "${outputName}/EPUB/xhtml/${outPutNum}.xhtml" 2>/dev/null
@@ -299,7 +295,7 @@ rm fileList
 
 cat << EOF >> content.opf
 </manifest>
-<spine page-progression-direction="rtl">
+<spine page-progression-direction="ltr">
 <itemref idref="cover" linear="no" />
 EOF
 cat content.opf |grep id=\"ID|sed "s/[^\"]*\"//;s/\".*//"|xargs -I{} printf "\t<itemref idref=\"{}\" />\n" >> content.opf
@@ -319,7 +315,6 @@ zip -Xqr  "${outputName}.epub" mimetype EPUB/ META-INF/
 mv "${outputName}.epub" ../
 cd ../
 mv "${inputFile}" "${outputName}.txt" 2>/dev/null
-rm $inputname 2>/dev/null
 rm -r "${outputName}"
-epubcheck "${outputName}.epub"
+java -jar ~/bin/epubcheck/epubcheck.jar "${outputName}.epub"
 #open "${outputName}.epub"
