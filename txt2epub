@@ -73,19 +73,10 @@ inputname=`echo $inputFile|sed s/txt$/jpg/`
 if [ -f "$inputname" ];then
 	convert "$inputname" "${outputName}/EPUB/img/cover.png"
 else
-	read -p "輸入圖片位置，留白自動生成:" coverpath
+	read -p "圖片" coverpath
 	if [ "$coverpath" != "" ]
 		then
-			convert "$coverpath" "${outputName}/EPUB/img/cover.png"
-		else
-			cd "${outputName}/EPUB/img"
-			convert -size 320x960 -pointsize 100 -gravity west -font "/System/Library/Fonts/STHeiti Light.ttc" label:$(nl $title) 3.png
-			convert -size 240x960 -pointsize 50 -gravity center -font "/System/Library/Fonts/STHeiti Light.ttc" label:$(nl $author) 2.png
-			convert -size 960x120 -pointsize 28 -gravity east -font "/System/Library/Fonts/STHeiti Light.ttc" label:nopetw 0.png
-			convert -rotate 90 0.png 1.png
-			convert +append 1.png 2.png 3.png cover.png
-			rm 0.png 1.png 2.png 3.png
-			cd ../../../
+			convert -resize 200 "$coverpath" "${outputName}/EPUB/img/cover.png"
 	fi
 fi
 cat << EOF > "${outputName}/EPUB/xhtml/cover.xhtml"
