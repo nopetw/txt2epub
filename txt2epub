@@ -10,7 +10,7 @@ lang="zh-TW"
 #-------------------------------------------------
 #rulebak="^第[零一二三四五六七八九十百千0123456789]*[章|卷|回|節]"
 #rulebak="^第[零一二三四五六七八九十百千0123456789]*[章|回|節]"
-rulebak="^第[零一兩二三四五六七八九十百千0123456789]*[章]"
+rulebak="^第[零一兩二三四五六七八九十百千○0123456789]*[章]"
 read -p "$rulebak " rule
 if [ "$rule" == "" ];then
 	rule=$rulebak
@@ -218,6 +218,7 @@ EOF
 	tmpNum=$i
 	outPutNum=`expr $outPutNum + 1`
 done
+## 迴圈結束 ##
 cd "${outputName}/EPUB"
 cd xhtml
 
@@ -316,4 +317,5 @@ mv "${inputFile}" "${outputName}.txt" 2>/dev/null
 rm $inputname 2>/dev/null
 rm -r "${outputName}"
 epubcheck "${outputName}.epub"
+kindlegen "${outputName}.epub"
 #open "${outputName}.epub"
