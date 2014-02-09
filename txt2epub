@@ -76,7 +76,7 @@ else
 	read -p "圖片" coverpath
 	if [ "$coverpath" != "" ]
 		then
-			convert -resize 200 "$coverpath" "${outputName}/EPUB/img/cover.png"
+			convert -resize 300 "$coverpath" "${outputName}/EPUB/img/cover.png"
 	fi
 fi
 cat << EOF > "${outputName}/EPUB/xhtml/cover.xhtml"
