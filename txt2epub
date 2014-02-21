@@ -24,8 +24,8 @@ hrmark="[。|-|~|…|\.|．]"
 #---  FUNCTION  ----------------------------------
 #          NAME:  tcy
 #   DESCRIPTION:  修正無法顯示的字元＆自動插入<span class="tcy"> </span>
-#    PARAMETERS:  
-#       RETURNS:  
+#    PARAMETERS:
+#       RETURNS:
 #-------------------------------------------------
 function tcy()
 {
@@ -254,10 +254,10 @@ cd ..
 cat << EOF > content.opf
 <?xml version="1.0"?>
 <package version="3.0"
-    xmlns="http://www.idpf.org/2007/opf" 
-    unique-identifier="BookId" 
-    xmlns:dc="http://purl.org/dc/elements/1.1/" 
-    xmlns:opf="http://www.idpf.org/2007/opf" 
+    xmlns="http://www.idpf.org/2007/opf"
+    unique-identifier="BookId"
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:opf="http://www.idpf.org/2007/opf"
     xmlns:dcterms="http://purl.org/dc/terms/">
 <metadata>
 <dc:creator id="nopetw-aut">${author}</dc:creator>
@@ -305,8 +305,9 @@ zip -Xqr  "${outputName}.epub" mimetype EPUB/ META-INF/
 mv "${outputName}.epub" ../
 cd ../
 mv "${inputFile}" "${outputName}.txt" 2>/dev/null
-rm $inputname 2>/dev/null
+rm ${inputname} 2>/dev/null
 rm -r "${outputName}"
+rm "${coverpath}"
 epubcheck "${outputName}.epub"
 kindlegen "${outputName}.epub"
 #open "${outputName}.epub"
