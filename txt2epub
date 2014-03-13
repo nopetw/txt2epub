@@ -197,10 +197,10 @@ cat << EOF > "${outputName}/EPUB/xhtml/${outPutNum}.xhtml"
 </head>
 <body>
 <div>
-<h3>`echo ${subTitle}|sed "s/&/＆/g;s/</＜/g;s/>/＞/g"`</h3>
+<h3>`echo ${subTitle}|sed "s/&/&amp;/g;s/</&lt;/g;s/>/&gt;/g"`</h3>
 EOF
 printf "$[ $j - $tmpNum ] $tmpNum to $j\t${outPutNum}\n"
-sed -n "`expr ${tmpNum} + 1`,${j}p" $inputFile | sed "s/&/＆/g;s/</＜/g;s/>/＞/g;s/\([\w\.]\{1,\}\.\)/<span class=\"tcy\">\1<\/span>/g;s/^/<p>/;s/$/<\/p>/;s/^<p>${hrmark}*<\/p>/<hr \/>/" >> "${outputName}/EPUB/xhtml/${outPutNum}.xhtml" 2>/dev/null
+sed -n "`expr ${tmpNum} + 1`,${j}p" $inputFile | gsed "s/&/＆/g;s/</〈/g;s/>/〉/g;s/\(\w\{1,\}\)/<span class=\"tcy\">\1<\/span>/g;s/^/<p>/;s/$/<\/p>/;s/^<p>${hrmark}*<\/p>/<hr \/>/" >> "${outputName}/EPUB/xhtml/${outPutNum}.xhtml" 2>/dev/null
 cat << EOF >> "${outputName}/EPUB/xhtml/${outPutNum}.xhtml"
 </div>
 </body>
@@ -301,13 +301,12 @@ EOF
 #檔案操作
 #-------------------------------------------------
 cd ..
-zip -Xqr  "${outputName}.epub" mimetype EPUB/ META-INF/
-mv "${outputName}.epub" ../
-cd ../
-mv "${inputFile}" "${outputName}.txt" 2>/dev/null
-rm ${inputname} 2>/dev/null
-rm -r "${outputName}"
-rm "${coverpath}"
-epubcheck "${outputName}.epub"
-kindlegen "${outputName}.epub"
-#open "${outputName}.epub"
+# zip -Xqr  "${outputName}.epub" mimetype EPUB/ META-INF/
+# mv "${outputName}.epub" ../
+# cd ../
+# mv "${inputFile}" "${outputName}.txt" 2>/dev/null
+# rm ${inputname} 2>/dev/null
+# rm -r "${outputName}"
+# rm "${coverpath}"
+# epubcheck "${outputName}.epub"
+# kindlegen "${outputName}.epub"
